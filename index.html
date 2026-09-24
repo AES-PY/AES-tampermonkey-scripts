@@ -1,376 +1,49 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Установка переводчика Бизнесмании RU → UA для Tampermonkey">
-  <title>Бизнесмания — RU-UA переводчик</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.95), transparent 32%),
-        linear-gradient(135deg, #eef5ff 0%, #f7f9fc 48%, #eefaf5 100%);
-      color: #172033;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 720px;
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid rgba(23, 32, 51, 0.08);
-      border-radius: 24px;
-      box-shadow: 0 22px 70px rgba(30, 53, 87, 0.14);
-      padding: 38px;
-      backdrop-filter: blur(14px);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 28px;
-    }
-
-    .logo {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      font-size: 28px;
-      background: linear-gradient(135deg, #2f80ed, #27ae60);
-      color: white;
-      box-shadow: 0 10px 24px rgba(47, 128, 237, 0.25);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(27px, 5vw, 38px);
-      line-height: 1.08;
-    }
-
-    .subtitle {
-      margin: 8px 0 0;
-      color: #647084;
-      font-size: 16px;
-    }
-
-    .steps {
-      display: grid;
-      gap: 14px;
-      margin-top: 28px;
-    }
-
-    .step {
-      display: grid;
-      grid-template-columns: 44px 1fr;
-      gap: 16px;
-      align-items: start;
-      padding: 20px;
-      border: 1px solid #e5e9f0;
-      border-radius: 18px;
-      background: #fff;
-      transition: .2s ease;
-    }
-
-    .step.active {
-      border-color: #b8d4ff;
-      box-shadow: 0 8px 26px rgba(47, 128, 237, 0.09);
-    }
-
-    .step.done {
-      background: #f4fbf7;
-      border-color: #c7ead6;
-    }
-
-    .num {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      background: #edf4ff;
-      color: #2f80ed;
-      font-size: 18px;
-    }
-
-    .done .num {
-      background: #e3f7eb;
-      color: #219653;
-    }
-
-    .step h2 {
-      margin: 0 0 7px;
-      font-size: 20px;
-    }
-
-    .step p {
-      margin: 0 0 14px;
-      color: #657086;
-      line-height: 1.55;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      min-height: 48px;
-      padding: 0 18px;
-      border: 0;
-      border-radius: 13px;
-      background: #2f80ed;
-      color: white;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
-      box-shadow: 0 9px 22px rgba(47, 128, 237, 0.24);
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 26px rgba(47, 128, 237, 0.28);
-    }
-
-    .btn.secondary {
-      background: #eef2f7;
-      color: #263143;
-      box-shadow: none;
-    }
-
-    .btn.green {
-      background: #27ae60;
-      box-shadow: 0 9px 22px rgba(39, 174, 96, 0.22);
-    }
-
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .hint {
-      margin-top: 22px;
-      padding: 15px 16px;
-      border-radius: 14px;
-      background: #f7f9fc;
-      color: #657086;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    .small {
-      margin-top: 18px;
-      color: #8791a3;
-      text-align: center;
-      font-size: 13px;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    code {
-      padding: 2px 6px;
-      background: #eef2f7;
-      border-radius: 6px;
-    }
-
-    @media (max-width: 560px) {
-      .card {
-        padding: 24px;
-        border-radius: 20px;
-      }
-
-      .step {
-        grid-template-columns: 38px 1fr;
-        gap: 12px;
-        padding: 16px;
-      }
-
-      .num {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .actions {
-        display: grid;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Установка переводчика Бизнесмании RU → UA для Tampermonkey">
+<title>Бизнесмания — RU-UA переводчик</title>
+<style>
+*{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:radial-gradient(circle at 15% 10%,rgba(255,255,255,.95),transparent 34%),linear-gradient(135deg,#eef5ff 0%,#f7f9fc 50%,#eefaf5 100%);color:#172033;display:flex;align-items:center;justify-content:center;padding:24px}.card{width:100%;max-width:760px;background:rgba(255,255,255,.96);border:1px solid rgba(23,32,51,.08);border-radius:24px;box-shadow:0 22px 70px rgba(30,53,87,.14);padding:38px}.brand{display:flex;align-items:center;gap:14px;margin-bottom:28px}.logo{width:56px;height:56px;border-radius:17px;display:grid;place-items:center;font-size:29px;background:linear-gradient(135deg,#2f80ed,#27ae60);color:#fff;box-shadow:0 10px 24px rgba(47,128,237,.25);flex:0 0 auto}h1{margin:0;font-size:clamp(27px,5vw,38px);line-height:1.08}.subtitle{margin:8px 0 0;color:#647084;font-size:16px}.steps{display:grid;gap:14px;margin-top:28px}.step{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;padding:20px;border:1px solid #e5e9f0;border-radius:18px;background:#fff}.step.active{border-color:#b8d4ff;box-shadow:0 8px 26px rgba(47,128,237,.09)}.step.done{background:#f4fbf7;border-color:#c7ead6}.step.warning{background:#fffaf1;border-color:#f0d39a}.num{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:800;background:#edf4ff;color:#2f80ed;font-size:18px}.done .num{background:#e3f7eb;color:#219653}.warning .num{background:#fff0cf;color:#ad7410}.step h2{margin:0 0 7px;font-size:20px}.step p{margin:0 0 14px;color:#657086;line-height:1.55}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border:0;border-radius:13px;background:#2f80ed;color:#fff;text-decoration:none;font-weight:700;font-size:15px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 9px 22px rgba(47,128,237,.24)}.btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(47,128,237,.28)}.btn.green{background:#27ae60;box-shadow:0 9px 22px rgba(39,174,96,.22)}.btn.secondary{background:#eef2f7;color:#263143;box-shadow:none}.btn.dark{background:#263143;box-shadow:0 9px 22px rgba(38,49,67,.18)}.actions{display:flex;flex-wrap:wrap;gap:10px}.instruction{margin-top:14px;padding:16px;border-radius:14px;background:#f7f9fc;color:#586477;line-height:1.55;font-size:14px}.instruction ol{margin:8px 0 0 20px;padding:0}.instruction li{margin:6px 0}.browser-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:#edf4ff;color:#2f80ed;font-size:13px;font-weight:700;margin-bottom:10px}.hint{margin-top:22px;padding:15px 16px;border-radius:14px;background:#f7f9fc;color:#657086;line-height:1.5;font-size:14px}.small{margin-top:18px;color:#8791a3;text-align:center;font-size:13px}.hidden{display:none!important}code{padding:2px 6px;background:#eef2f7;border-radius:6px;font-size:.95em}.copy-status{min-height:20px;margin-top:8px;color:#219653;font-size:13px;font-weight:600}@media(max-width:560px){.card{padding:24px;border-radius:20px}.step{grid-template-columns:38px 1fr;gap:12px;padding:16px}.num{width:38px;height:38px;border-radius:12px}.actions{display:grid}.btn{width:100%}}
+</style>
 </head>
-
 <body>
-  <main class="card">
-    <div class="brand">
-      <div class="logo">🇺🇦</div>
-      <div>
-        <h1>Бизнесмания — RU-UA</h1>
-        <div class="subtitle">Переводчик интерфейса bizmania.ru</div>
-      </div>
-    </div>
+<main class="card">
+<div class="brand"><div class="logo">🇺🇦</div><div><h1>Бизнесмания — RU-UA</h1><div class="subtitle">Переводчик интерфейса bizmania.ru</div></div></div>
+<section class="steps">
+<div id="step1" class="step active"><div class="num">1</div><div><h2>Установите Tampermonkey</h2><p>Tampermonkey запускает переводчик на сайте Бизнесмании. Установка бесплатная.</p><div class="actions"><a class="btn" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener">Установить Tampermonkey</a><button id="tmInstalledBtn" class="btn secondary" type="button">Tampermonkey уже установлен</button></div></div></div>
+<div id="step2" class="step warning hidden"><div class="num">2</div><div><div id="browserBadge" class="browser-badge">Chrome / Edge</div><h2>Разрешите пользовательские скрипты</h2><p id="permissionText">В современных версиях Chrome и Edge Tampermonkey требует отдельного разрешения на выполнение userscript'ов.</p><div class="instruction" id="permissionInstruction"></div><div class="actions"><button id="copyAddressBtn" class="btn dark" type="button">Скопировать адрес расширений</button><button id="permissionDoneBtn" class="btn secondary" type="button">Я включил разрешение</button></div><div id="copyStatus" class="copy-status"></div></div></div>
+<div id="step3" class="step hidden"><div class="num">3</div><div><h2>Установите переводчик</h2><p>Нажмите кнопку ниже. Tampermonkey откроет установку скрипта. В появившемся окне нажмите <b>Install / Установить</b>.</p><div class="actions"><a class="btn green" href="https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js" target="_blank" rel="noopener">Установить переводчик</a><button id="backBtn" class="btn secondary" type="button">Назад</button></div></div></div>
+<div id="success" class="step done hidden"><div class="num">✓</div><div><h2>Готово</h2><p>Переводчик установлен. Откройте или обновите <b>bizmania.ru</b> — он должен запуститься автоматически.</p><div class="actions"><a class="btn green" href="https://bizmania.ru/" target="_blank" rel="noopener">Открыть Бизнесманию</a><button id="resetBtn" class="btn secondary" type="button">Начать установку заново</button></div></div></div>
+</section>
+<div class="hint"><b>Примечание:</b> обычная веб-страница не может напрямую проверить, установлен ли Tampermonkey. Поэтому после его установки пользователь вручную подтверждает шаг 2. Это нормальное ограничение браузера.</div>
+<div class="small">AES-PY · Бизнесмания — RU-UA переводчик</div>
+</main>
+<script>
+const step1=document.getElementById('step1'),step2=document.getElementById('step2'),step3=document.getElementById('step3'),success=document.getElementById('success');
+const STATE_KEY='bizmania_installer_step';
+function showOnly(section){[step1,step2,step3,success].forEach(el=>el.classList.add('hidden'));section.classList.remove('hidden')}
+function setState(n){localStorage.setItem(STATE_KEY,String(n))}
+function configurePermissionHelp(){
+ const ua=navigator.userAgent||'', isEdge=/Edg\//.test(ua), isChrome=/Chrome\//.test(ua)&&!isEdge;
+ const badge=document.getElementById('browserBadge'), box=document.getElementById('permissionInstruction'), text=document.getElementById('permissionText');
+ if(isEdge){badge.textContent='Microsoft Edge';box.innerHTML='<b>Edge:</b><ol><li>Откройте <code>edge://extensions</code>.</li><li>Найдите <b>Tampermonkey</b> и нажмите <b>Подробнее</b>.</li><li>Включите <b>«Разрешить пользовательские скрипты»</b> / <b>«Allow User Scripts»</b>.</li><li>Вернитесь на эту страницу.</li></ol>'}
+ else if(isChrome){badge.textContent='Google Chrome';box.innerHTML='<b>Chrome:</b><ol><li>Откройте <code>chrome://extensions</code>.</li><li>Найдите <b>Tampermonkey</b> и нажмите <b>Подробнее</b>.</li><li>Включите <b>«Разрешить пользовательские скрипты»</b> / <b>«Allow User Scripts»</b>.</li><li>Вернитесь на эту страницу.</li></ol>'}
+ else {badge.textContent='Другой браузер';text.textContent='Если вы используете Firefox, Safari или другой браузер, этот шаг может отличаться.';box.innerHTML='<b>Для Chrome/Edge этот шаг обязателен.</b><br>В других браузерах следуйте подсказкам самого Tampermonkey.'}
+}
+function showStep1(){setState(1);showOnly(step1)}
+function showStep2(){setState(2);showOnly(step2);configurePermissionHelp()}
+function showStep3(){setState(3);showOnly(step3)}
+function showSuccess(){setState(4);showOnly(success)}
 
-    <section class="steps">
-      <!-- STEP 1 -->
-      <div id="step1" class="step active">
-        <div class="num">1</div>
-        <div>
-          <h2>Установите Tampermonkey</h2>
-          <p>
-            Это небольшое расширение, которое запускает переводчик на сайте Бизнесмании.
-            Если Tampermonkey уже установлен, переходите сразу к шагу 2.
-          </p>
-
-          <div class="actions">
-            <a
-              id="tmLink"
-              class="btn"
-              href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo"
-              target="_blank"
-              rel="noopener"
-            >
-              Установить Tampermonkey
-            </a>
-
-            <button id="alreadyInstalled" class="btn secondary" type="button">
-              Tampermonkey уже установлен
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 2 -->
-      <div id="step2" class="step hidden">
-        <div class="num">2</div>
-        <div>
-          <h2>Установите переводчик</h2>
-          <p>
-            Теперь нажмите кнопку ниже. Tampermonkey откроет окно установки скрипта.
-            В нём нажмите <b>Install / Установить</b>.
-          </p>
-
-          <div class="actions">
-            <a
-              id="scriptLink"
-              class="btn green"
-              href="https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js"
-              target="_blank"
-              rel="noopener"
-            >
-              Установить переводчик
-            </a>
-
-            <button id="backBtn" class="btn secondary" type="button">
-              Назад
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUCCESS -->
-      <div id="success" class="step done hidden">
-        <div class="num">✓</div>
-        <div>
-          <h2>Готово</h2>
-          <p>
-            Переводчик установлен. Теперь откройте или обновите
-            <b>bizmania.ru</b> — скрипт должен запуститься автоматически.
-          </p>
-
-          <div class="actions">
-            <a
-              class="btn"
-              href="https://bizmania.ru/"
-              target="_blank"
-              rel="noopener"
-            >
-              Открыть Бизнесманию
-            </a>
-            <button id="resetBtn" class="btn secondary" type="button">
-              Установить заново
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="hint">
-      <b>Важно:</b> если после установки Tampermonkey вы остались на странице магазина,
-      просто вернитесь на эту страницу и нажмите «Tampermonkey уже установлен».
-    </div>
-
-    <div class="small">
-      AES-PY · Бизнесмания — RU-UA переводчик
-    </div>
-  </main>
-
-  <script>
-    const step1 = document.getElementById("step1");
-    const step2 = document.getElementById("step2");
-    const success = document.getElementById("success");
-
-    const alreadyInstalled = document.getElementById("alreadyInstalled");
-    const backBtn = document.getElementById("backBtn");
-    const resetBtn = document.getElementById("resetBtn");
-
-    const TM_FLAG = "bizmania_tm_step_done";
-
-    function showStep2() {
-      step1.classList.add("hidden");
-      step2.classList.remove("hidden");
-      success.classList.add("hidden");
-      localStorage.setItem(TM_FLAG, "1");
-    }
-
-    function showStep1() {
-      step1.classList.remove("hidden");
-      step2.classList.add("hidden");
-      success.classList.add("hidden");
-    }
-
-    function showSuccess() {
-      step1.classList.add("hidden");
-      step2.classList.add("hidden");
-      success.classList.remove("hidden");
-    }
-
-    alreadyInstalled.addEventListener("click", showStep2);
-    backBtn.addEventListener("click", showStep1);
-
-    resetBtn.addEventListener("click", () => {
-      localStorage.removeItem(TM_FLAG);
-      showStep1();
-    });
-
-    /*
-      После первого визита и возврата на страницу:
-      показываем шаг 2.
-      Сам сайт не проверяет наличие Tampermonkey напрямую —
-      браузер не предоставляет обычным веб-страницам такой доступ.
-    */
-    if (localStorage.getItem(TM_FLAG) === "1") {
-      showStep2();
-    }
-  </script>
+document.getElementById('tmInstalledBtn').addEventListener('click',showStep2);
+document.getElementById('permissionDoneBtn').addEventListener('click',showStep3);
+document.getElementById('backBtn').addEventListener('click',showStep2);
+document.getElementById('resetBtn').addEventListener('click',()=>{localStorage.removeItem(STATE_KEY);showStep1()});
+document.getElementById('copyAddressBtn').addEventListener('click',async()=>{const address=/Edg\//.test(navigator.userAgent||'')?'edge://extensions':'chrome://extensions';try{await navigator.clipboard.writeText(address);document.getElementById('copyStatus').textContent='Скопировано: '+address}catch{document.getElementById('copyStatus').textContent='Скопируйте вручную: '+address}});
+const saved=localStorage.getItem(STATE_KEY); if(saved==='2')showStep2(); else if(saved==='3')showStep3(); else if(saved==='4')showSuccess(); else showStep1();
+</script>
 </body>
 </html>
