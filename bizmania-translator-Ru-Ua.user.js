@@ -8,8 +8,8 @@
 // @match        *://bizmania.ru/*
 // @run-at       document-idle
 // @grant        none
-// @updateURL    https://githubusercontent.com
-// @downloadURL  https://githubusercontent.com
+// @updateURL    https://raw.githubusercontent.com/AES-SEA/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
+// @downloadURL  https://raw.githubusercontent.com/AES-SEA/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
 // ==/UserScript==
 
 (function () {
