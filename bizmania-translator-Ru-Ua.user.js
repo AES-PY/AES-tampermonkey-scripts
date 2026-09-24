@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Бизнесмания — RU-UA переводчик
-// @namespace    bizmania-RU-UA
+// @namespace    https://github.com/AES-SEA/AES-tampermonkey-scripts
 // @version      1.0
 // @author       AES https://bizmania.ru/company?id=8981
 // @description  Перевод интерфейса Бизнесмании с русского на украинский
