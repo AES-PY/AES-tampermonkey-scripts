@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Бизнесмания — RU-UA переводчик
-// @namespace    https://github.com/AES-SEA/AES-tampermonkey-scripts
+// @namespace    https://github.com/AES-PY/AES-tampermonkey-scripts
 // @version      1.0
 // @author       AES https://bizmania.ru/company?id=8981
 // @description  Перевод интерфейса Бизнесмании с русского на украинский
@@ -8,8 +8,8 @@
 // @match        *://bizmania.ru/*
 // @run-at       document-idle
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/AES-SEA/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
-// @downloadURL  https://raw.githubusercontent.com/AES-SEA/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
+// @updateURL    https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
+// @downloadURL  https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
 // ==/UserScript==
 
 (function () {
