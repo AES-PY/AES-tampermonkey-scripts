@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Бизнесмания — RU-UA-EN переводчик
 // @namespace    https://github.com/AES-PY/AES-tampermonkey-scripts
-// @version      2.0.0
+// @version      3.1.0
 // @author       AES https://bizmania.ru/company?id=8981
 // @description  Переключаемый интерфейс Бизнесмании: русский, украинский, английский
 // @match        *://*.bizmania.ru/*
 // @match        *://bizmania.ru/*
-// @run-at       document-idle
+// @run-at       document-start
+// @noframes
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
 // @downloadURL  https://raw.githubusercontent.com/AES-PY/AES-tampermonkey-scripts/main/bizmania-translator-Ru-Ua.user.js
@@ -15,6 +16,34 @@
 (function () {
   'use strict';
 
+  // Браузер сначала скрывает body, пока userscript не выполнит первый перевод.
+  // Это уменьшает/устраняет краткую вспышку исходного русского интерфейса.
+  const EARLY_HIDE_ATTRIBUTE = 'data-bm-translator-pending';
+  const EARLY_HIDE_STYLE_ID = 'bm-translator-early-hide';
+
+  function installEarlyHide() {
+    if (!document.documentElement) return;
+
+    document.documentElement.setAttribute(EARLY_HIDE_ATTRIBUTE, '1');
+
+    if (!document.getElementById(EARLY_HIDE_STYLE_ID)) {
+      const style = document.createElement('style');
+      style.id = EARLY_HIDE_STYLE_ID;
+      style.textContent = `
+        html[${EARLY_HIDE_ATTRIBUTE}="1"] body {
+          visibility: hidden !important;
+        }
+      `;
+      (document.head || document.documentElement).appendChild(style);
+    }
+  }
+
+  installEarlyHide();
+
+  // Дополнительная защита: Tampermonkey должен работать только в верхнем окне.
+  // Перевод доступных same-origin iframe выполняется родительским документом.
+  if (window.top !== window.self) return;
+
   /*
    * Блоки словаря сохранены раздельно для удобного сопровождения.
    * Ключи сравниваются СТРОГО с учетом регистра, пробелов и знаков препинания.
@@ -22,6 +51,384 @@
    */
 
   const UI = {
+    //НЕСОРТИРОВАННОЕ //
+    "Стоимость уровня": { ua: "Усього", en: "Total" },
+    "Макс. число сотрудников": { ua: "Макс. кількість співробітників", en: "Maximum number of employees" },
+    "Макс. городов": { ua: "Макс. міст", en: "Max. cities" },
+    "Макс. кол-во предприятий": { ua: "Макс. кількість підприємств", en: "Max. number of enterprises" },
+    "Внешние контрагенты": { ua: "Зовнішні контрагенти", en: "External counterparties" },
+    "Все заказы": { ua: "Усі замовлення", en: "All orders" },
+    "Создать предприятие": { ua: "Створити підприємство", en: "Establish an enterprise" },
+    "Деньги компании": { ua: "Гроші компанії", en: "Company funds" },
+    "Деньги персонажа": { ua: "Гроші персонажа", en: "Character's money" },
+    "Прогресс": { ua: "Прогрес", en: "Progress" },
+    "Комбо": { ua: "Комбо", en: "Combo" },
+    "Категория": { ua: "Категорія", en: "Category" },
+    "млрд p.": { ua: "млрд p.", en: "RUB billion" },
+    "млн.": { ua: "млн.", en: "million" },
+    "Одесса": { ua: "Одеса", en: "Odessa" },
+    "Предприятий:": { ua: "Підприємств:", en: "Enterprises:" },
+    "Создание предприятия": { ua: "Створення підприємства", en: "Establishment of an enterprise" },
+    "Уровень вашего управляющего отдела штаб-квартиры не позволяет иметь больше чем": { ua: "Рівень вашого керуючого відділу штаб-квартири не дозволяє мати більше, ніж", en: "Your headquarters management level does not allow you to have more than" },
+    "предприятий": { ua: "підприємств", en: "enterprises" },
+    "Менеджер": { ua: "Менеджер", en: "Manager" },
+    "Активен": { ua: "Активний", en: "Active" },
+    "Отзыв работодателя": { ua: "Відгук роботодавця", en: "Employer reference" },
+    "Последние выборы": { ua: "Останні вибори", en: "The latest elections" },
+    "Богатство": { ua: "Багатство", en: "Wealth" },
+    "Квалиф.": { ua: "Кваліф.", en: "Qual." },
+    "Ресурсы": { ua: "Ресурси", en: "Resources" },
+    "C/x": { ua: "C/x", en: "Agricultural" },
+    "Ресурсы доступные во всех городах: ": { ua: "Ресурси доступні у всіх містах:", en: "Resources available in all cities:" },
+    "еще не проводились": { ua: "ще не проводились", en: "have not yet been conducted" },
+    "Центральная Россия": { ua: "Центральна Росія", en: "Central Russia" },
+    "Москва": { ua: "Москва", en: "Moscow" },
+    "Казань": { ua: "Казань", en: "Kazan" },
+    "Краснодар": { ua: "Краснодар", en: "Krasnodar" },
+    "Астрахань": { ua: "Астрахань", en: "Astrakhan" },
+    "Оренбург": { ua: "Оренбург", en: "Orenburg" },
+    "Курган": { ua: "Курган", en: "Kurgan" },
+    "Бухарест": { ua: "Бухарест", en: "Bucharest" },
+    "Афины": { ua: "Афіни", en: "Athens" },
+    "Анкара": { ua: "Анкара", en: "Ankara" },
+    "Ереван": { ua: "Єреван", en: "Yerevan" },
+    "Астана": { ua: "Астана", en: "Astana" },
+    "Байконур": { ua: "Байконур", en: "Baikonur" },
+    "Ташкент": { ua: "Ташкент", en: "Tashkent" },
+    "Ашхабад": { ua: "Ашгабат", en: "Ashgabat" },
+    "Кабул": { ua: "Кабул", en: "Kabul" },
+    "Карачи": { ua: "Карачі", en: "Karachi" },
+    "Тегеран": { ua: "Тегеран", en: "Tehran" },
+    "Бирдженд": { ua: "Бірджанд", en: "Birjand" },
+    "Багдад": { ua: "Багдад", en: "Baghdad" },
+    "Тель-Авив": { ua: "Тель-Авів", en: "Tel Aviv" },
+    "Дубай": { ua: "Дубай", en: "Dubai" },
+    "Джидда": { ua: "Джидда", en: "Jeddah" },
+    "Калининград": { ua: "Калінінград", en: "Kaliningrad" },
+    "Калининградская область": { ua: "Калінінградська область", en: "Kaliningrad Oblast" },
+    "Аравия": { ua: "Аравія", en: "Arabia" },
+    "Левант": { ua: "Левант", en: "Levant" },
+    "Персия": { ua: "Персія", en: "Persia" },
+    "Средняя азия": { ua: "Середня Азія", en: "Middle Asia" },
+    "Центральная азия": { ua: "Центральна Азія", en: "Central Asia" },
+    "Казахстан": { ua: "Казахстан", en: "Kazakhstan" },
+    "Византия": { ua: "Візантія", en: "Byzantium" },
+    "Балканы": { ua: "Балкани", en: "Balkans" },
+    "Украина": { ua: "Україна", en: "Ukraine" },
+    "Урал": { ua: "Урал", en: "Urals" },
+    "Южная Россия": { ua: "Південна Росія", en: "Southern Russia" },
+    "З/п начальников отделов:": { ua: "З/п начальників відділів:", en: "Salaries of department heads:" },
+    "очк.": { ua: "очк.", en: "pts." }, 
+    "Производственный отдел": { ua: "Виробничий відділ", en: "Production Department" }, 
+    "Строитель": { ua: "Будівельник", en: "Builder" }, 
+    "Валюта:": { ua: "Валюта:", en: "Currency:" }, 
+    "закрыть счет": { ua: "закрити рахунок", en: "close an account" }, 
+    "У компании нет взятых кредитов": { ua: "У компанії немає взятих кредитів", en: "The company has no outstanding loans" }, 
+    "Дата начала": { ua: "Дата початку", en: "Start date" },
+    "Покупка предприятия": { ua: "Купівля підприємства", en: "Purchase of a business" },  
+    "Оплата комиссии": { ua: "Оплата комісії", en: "Commission payment" },  
+    "Покупка ИО по сделке": { ua: "Купівля ІВ за угодою", en: "Purchase of game points" }, 
+    "Уровень подразделение": { ua: "Рівень підрозділ", en: "Unit level" },
+    "Нет продаж квартир": { ua: "Немає продажів квартир", en: "No apartment sales" },
+    "Рента": { ua: "Рента", en: "Rent" },
+    "Транспортные расходы": { ua: "Транспортні витрати", en: "Transportation costs" },
+    "Расходы на персонал": { ua: "Витрати на персонал", en: "Personnel costs" },
+    "Бонусы менеджерам": { ua: "Бонусы менеджерам", en: "Manager bonuses" },
+    "Расходы на найм персонала": { ua: "Витрати на найм персоналу", en: "Recruitment expenses" },
+    "Расходы на сокращение персонала": { ua: "Витрати на скорочення персоналу", en: "Redundancy costs" },
+    "Продажа оборудования": { ua: "Продаж обладнання", en: "Sale of equipment" },
+    "Продажа недвижимости и другой собственности": { ua: "Продаж нерухомості та іншої власності", en: "Sale of real estate and other property" },
+    "Инвестиционные расходы": { ua: "Інвестиційні витрати", en: "Investment expenses" },
+    "Покупка предприятий": { ua: "Купівля підприємств", en: "Acquisition of businesses" },
+    "Финансовые доходы": { ua: "Фінансові доходи", en: "Financial income" },
+    "Финансовые расходы": { ua: "Фінансові витрати", en: "Finance costs" },
+    "Название статьи": { ua: "Назва статті", en: "Line item name" },
+    "Запасы": { ua: "Запаси", en: "Inventory" },
+    "Куплено": { ua: "Куплено", en: "Purchased" },
+    "Приход": { ua: "Надходження", en: "Inflow" },
+    "Расход": { ua: "Витрата", en: "Outflow" },
+    "Произведено": { ua: "Вироблено", en: "Produced" },
+    "Потреблено": { ua: "Спожито", en: "Consumed" },
+    "Тендер": { ua: "Тендер", en: "Tender" },
+    "Общий баланс": { ua: "Загальний баланс", en: "Total balance" },
+    "Продано оптом": { ua: "Продано оптом", en: "Sold wholesale" },
+    "Продано в розницу": { ua: "Продано в роздріб", en: "Sold retail" },
+    "Покупки:": { ua: "Покупки:", en: "Purchases:" },
+    "Остаток по счету на конец дня": { ua: "Залишок на рахунку на кінець дня", en: "Closing daily balance" },
+    "Место по активам": { ua: "Місце за активами", en: "Asset rank" },
+    "Место по рабочим": { ua: "Місце за робітниками", en: "Workforce rank" },
+    "Место по наградам": { ua: "Місце за нагородами", en: "Award rank" },
+    "Шахтерский отдел": { ua: "Шахтарський відділ", en: "Mining department" },
+    "Производимые продукты:": { ua: "Продукти, що виробляються:", en: "Products manufactured:" },
+    "Шахтерские товары:": { ua: "Шахтарські товари:", en: "Mining goods:" },
+    "Убыток прошлых периодов": { ua: "Збиток минулих періодів", en: "Prior period loss" },
+    "Налоговая прибыль/убыток": { ua: "Податковий прибуток/збиток", en: "Taxable profit/loss" },
+    "Ставка налога на прибыль (с учетом льгот),%": { ua: "Ставка податку на прибуток (з урахуванням пільг),%", en: "Income tax rate (including benefits),%" },
+    "активы": { ua: "активи", en: "assets" },
+    "чистые активы": { ua: "чисті активи", en: "net assets" },
+    "Рейтинг города": { ua: "Рейтинг міста", en: "City rating" },
+    "Опыт:": { ua: "Досвід:", en: "Experience:" },
+    "Друзья": { ua: "Друзі", en: "Friends" },
+    "Враги": { ua: "Вороги", en: "Enemies" },
+    "Мэр": { ua: "Мер", en: "Mayor" },
+    "Общий рейтинг": { ua: "Загальний рейтинг", en: "Overall rating" },
+    "Очки": { ua: "Очки", en: "Points" },
+    "Застройка": { ua: "Забудова", en: "Development" },
+    "Занятость": { ua: "Зайнятість", en: "Employment" },
+    "Показатели компаний": { ua: "Показники компаній", en: "Company metrics" },
+    "Кол-во": { ua: "К-сть", en: "Qty" },
+    "Сентябрь": { ua: "Вересень", en: "September" },
+    "Октябрь": { ua: "Жовтень", en: "October" },
+    "Ноябрь": { ua: "Листопад", en: "November" },
+    "Декабрь": { ua: "Грудень", en: "December" },
+    "Январь": { ua: "Січень", en: "January" },
+    "Февраль": { ua: "Лютий", en: "February" },
+    "Март": { ua: "Березень", en: "March" },
+    "Апрель": { ua: "Квітень", en: "April" },
+    "Май": { ua: "Травень", en: "May" },
+    "Июнь": { ua: "Червень", en: "June" },
+    "Июль": { ua: "Липень", en: "July" },
+    "Август": { ua: "Серпень", en: "August" },
+    "Место по одинаковому стажу": { ua: "Місце за однаковим стажем", en: "Rank by identical tenure" },
+    "Ваши достижения": { ua: "Ваші досягнення", en: "Your achievements" },
+    "Второе место": { ua: "Друге місце", en: "Second place" },
+    "Третье место": { ua: "Третє місце", en: "Third place" },
+    "Лидер": { ua: "Лідер", en: "Leader" },
+    "Объем производства": { ua: "Обсяг виробництва", en: "Production volume" },
+    "Место вашей компании": { ua: "Місце вашої компанії", en: "Your company rank" },
+    "Заслуженные": { ua: "Заслужені", en: "Honored" },
+    "Текущий лидер": { ua: "Поточний лідер", en: "Current leader" },
+    "Влиятельные": { ua: "Впливові", en: "Influential" },
+    "нет": { ua: "ні", en: "no" },
+    "Городские лидеры": { ua: "Міські лідери", en: "City leaders" },
+    "Победители конкурсов": { ua: "Переможці конкурсів", en: "Contest winners" },
+    "Конкурс": { ua: "Конкурс", en: "Contest" },
+    "Влиятельный бизнесмен города": { ua: "Впливовий бізнесмен міста", en: "Influential city businessman" },
+    "Локальный лидер города": { ua: "Локальний лідер міста", en: "Local city leader" },
+    "Лучший торговец города": { ua: "Кращий торговець міста", en: "Best city trader" },
+    "Лучший промышленник города": { ua: "Кращий промисловець міста", en: "Best city industrialist" },
+    "Лидерство в отрасли": { ua: "Лідерство в галузі", en: "Industry leadership" },
+    "Доля лидера": { ua: "Частка лідера", en: "Leader's share" },
+    "Ваша доля": { ua: "Ваша частка", en: "Your share" },
+    "Достижения менеджера": { ua: "Досягнення менеджера", en: "Manager achievements" },
+    "Лучшие достижения": { ua: "Кращі досягнення", en: "Top achievements" },
+    "Лидерство": { ua: "Лідерство", en: "Leadership" },
+    "Достижения и конкуренты": { ua: "Досягнення та конкуренти", en: "Achievements and competitors" },
+    "по выручке": { ua: "за виручкою", en: "by revenue" },
+    "по объему": { ua: "за обсягом", en: "by volume" },
+    "по доле рынка": { ua: "за часткою ринку", en: "by market share" },
+    "Все достижения": { ua: "Всі досягнення", en: "All achievements" },
+    "Контроль городов": { ua: "Контроль міст", en: "City control" },
+    "Лидеры по товарам": { ua: "Лідери за товарами", en: "Product leaders" },
+    "Топ по развитию": { ua: "Топ за розвитком", en: "Top by development" },
+    "Топ по приросту рабочих": { ua: "Топ за приростом робітників", en: "Top by workforce growth" },
+    "Производители товаров": { ua: "Виробники товарів", en: "Product manufacturers" },
+    "Контроль": { ua: "Контроль", en: "Control" },
+    "место": { ua: "місце", en: "place" },
+    "Фонд влияния составляет:": { ua: "Фонд впливу становить:", en: "Influence fund is:" },
+    "Сейчас для контроля необходимо иметь во влиянии": { ua: "Зараз для контролю необхідно мати у впливі", en: "To gain control, current required influence is" },
+    "Минимальная стоимость контроля города зависит от населения города.": { ua: "Мінімальна вартість контролю міста залежить від населення міста.", en: "The minimum cost of city control depends on the city population." },
+    "Баланс силы корпораций": { ua: "Баланс сили корпорацій", en: "Corporation balance of power" },
+    "Все школы": { ua: "Всі школи", en: "All schools" },
+    "Школьный рейтинг": { ua: "Шкільний рейтинг", en: "School rating" },
+    "Выпускники": { ua: "Випускники", en: "Graduates" },
+    "Новички недели": { ua: "Новачки тижня", en: "Newcomers of the week" },
+    "Активы участников": { ua: "Активи учасників", en: "Member assets" },
+    "Учеников пока нет": { ua: "Учнів поки немає", en: "No students yet" },
+    "Президент": { ua: "Президент", en: "President" },
+    "Россия": { ua: "Росія", en: "Russia" },
+    "Европа": { ua: "Європа", en: "Europe" },
+    "Азия": { ua: "Азія", en: "Asia" },
+    "Ближний Восток": { ua: "Близький Схід", en: "Middle East" },
+    "Евразия": { ua: "Євразія", en: "Eurasia" },
+    "Будущий президент:": { ua: "Майбутній президент:", en: "Future president:" },
+    "Количество городов:": { ua: "Кількість міст:", en: "Number of cities:" },
+    "Возможности президента": { ua: "Можливості президента", en: "President's powers" },
+    "Переносы столицы:": { ua: "Перенесення столиці:", en: "Capital relocations:" },
+    "Выставление проектов на продажу:": { ua: "Виставлення проєктів на продаж:", en: "Listing projects for sale:" },
+    "Назначение выборов:": { ua: "Призначення виборів:", en: "Calling elections:" },
+    "Повышение зарплаты:": { ua: "Підвищення зарплати:", en: "Salary increase:" },
+    "Ремонт дороги:": { ua: "Ремонт дороги:", en: "Road repair:" },
+    "Разрушение дороги:": { ua: "Руйнування дороги:", en: "Road destruction:" },
+    "Товаров для level-up города:": { ua: "Товарів для level-up міста:", en: "Goods for city level-up:" },
+    "Страна": { ua: "Країна", en: "Country" },
+    "Пошлины": { ua: "Мита", en: "Duties" },
+    "ставка": { ua: "ставка", en: "rate" },
+    "min. сумма": { ua: "min. сума", en: "min. amount" },
+    "Таможенные ставки страны": { ua: "Митні ставки країни", en: "Country customs rates" },
+    "Таможенные ставки других стран для": { ua: "Митні ставки інших країн для", en: "Customs rates of other countries for" },
+    "Эмбарго на поставку товаров": { ua: "Ембарго на постачання товарів", en: "Embargo on supply of goods" },
+    "Эмбарго на поставку товаров других стран для": { ua: "Ембарго на постачання товарів інших країн для", en: "Embargo on supply of goods from other countries for" },
+    "Отношение к президенту страны": { ua: "Ставлення до президента країни", en: "Approval rating of the country's president" },
+    "История выборов": { ua: "Історія виборів", en: "Election history" },"немного": { ua: "трохи", en: "a little" },
+    "достаточно": { ua: "достатньо", en: "enough" },
+    "много": { ua: "багато", en: "a lot" },
+    "очень много": { ua: "дуже багато", en: "very much" },
+    "совсем мало": { ua: "зовсім мало", en: "very little" },
+    "немного растут": { ua: "трохи зростають", en: "growing slightly" },
+    "сильно растут": { ua: "сильно зростають", en: "growing rapidly" },
+    "немного падают": { ua: "трохи падають", en: "dropping slightly" },
+    "сильно падают": { ua: "сильно падають", en: "dropping rapidly" },
+    "без изменений": { ua: "без змін", en: "unchanged" },
+    "График населения и рабочих": { ua: "Графік населення та робітників", en: "Population and workforce chart" },
+    "График населения г.": { ua: "Графік населення м.", en: "City population chart" },
+    "Зарплата повышается.": { ua: "Зарплата підвищується.", en: "Salary increases." },
+    "Зарплата понижается.": { ua: "Зарплата знижується.", en: "Salary decreases." },
+    "Последнее изменение зарплаты:": { ua: "Остання зміна зарплати:", en: "Last salary adjustment:" },
+    "назад": { ua: "тому", en: "ago" },
+    "Скорость обучения персонала:": { ua: "Швидкість навчання персоналу:", en: "Staff training speed:" },
+    "Аренда/кв.м": { ua: "Оренда/кв.м", en: "Rent/sq.m." },
+    "Городской налог на прибыль - это процент прибыли предприятий, взымается так же, как и федеральный, однако его ставку может регулировать мэр": { ua: "Міський податок на прибуток — це відсоток прибутку підприємств, стягується так само, как і федеральний, проте його ставку може регулювати мер", en: "City income tax is a percentage of business profits, collected in the same way as the federal tax, however, its rate can be adjusted by the mayor" },
+    "Бонусный товар - это товар, который в этом городе получает +5% качества": { ua: "Бонусний товар — це товар, який у цьому місті отримує +5% якості", en: "Bonus product is a product that receives +5% quality in this city" },
+    "Товар повышенного спроса продается в рознице примерно в 2 раза лучше чем обычно": { ua: "Товар підвищеного попиту продається в роздріб приблизно в 2 рази краще ніж зазвичай", en: "High-demand product sells in retail approximately 2 times better than usual" },
+    "Товар пониженного спроса продается в рознице в 2 раза хуже чем обычно": { ua: "Товар зниженого попиту продається в роздріб приблизно в 2 рази гірше ніж зазвичай", en: "Low-demand product sells in retail approximately 2 times worse than usual" },
+    "Городская стройка:": { ua: "Міське будівництво:", en: "City construction site:" },
+    "Нет покупок по выбранному товару": { ua: "Немає покупок за обраним товаром", en: "No purchases for the selected product" },
+    "Тип дотации": { ua: "Тип дотації", en: "Subsidy type" },
+    "Размер": { ua: "Розмір", en: "Size" },
+    "Текущее / Требуется": { ua: "Поточне / Потрібно", en: "Current / Required" },
+    "Самый высокий уровень города": { ua: "Найвищий рівень міста", en: "Highest city level" },
+    "Города имеющие самых квалифицированных рабочих получают дотации": { ua: "Міста, які мають найкваліфікованіших робітників, отримують дотації", en: "Cities with the most skilled workforce receive subsidies" },
+    "Повышать уровень городской ратуши может только мэр города": { ua: "Підвищувати рівень міської ратуші може тільки мер міста", en: "Only the city mayor can upgrade the town hall level" },
+    "Типы домов:": { ua: "Типи будинків:", en: "House types:" },
+    "Спонсорство образования": { ua: "Спонсорство освіти", en: "Education sponsorship" },
+    "Бюджет на обучение рабочих:": { ua: "Бюджет на навчання робітників:", en: "Workforce training budget:" },
+    "Квалификация персонала": { ua: "Кваліфікація персоналу", en: "Staff qualification" },
+    "Спонсорский взнос": { ua: "Спонсорський внесок", en: "Sponsorship contribution" },
+    "Цена шага обучения": { ua: "Ціна кроку навчання", en: "Training step price" },
+    "Размер шага обучения": { ua: "Розмір кроку навчання", en: "Training step size" },
+    "Еженедельные взносы": { ua: "Щотижневі внески", en: "Weekly contributions" },
+    "Сделать платеж еженедельным": { ua: "Зробити платіж щотижневим", en: "Make payment weekly" },
+    "Ваши регулярные взносы": { ua: "Ваші регулярні внески", en: "Your recurring contributions" },
+    "В городе нет контролирующей корпорации, поэтому спонсировать повстанцев нельзя": { ua: "У місті немає контролюючої корпорації, тому спонсувати повстанців не можна", en: "There is no controlling corporation in the city, so sponsoring rebels is unavailable" },
+    "Передача денег на городскую стройку": { ua: "Передача грошей на міське будівництво", en: "Transferring funds to city construction" },
+    "Лучшие города по уровню получают дотации. Не начисляется за 1 уровень города. При равенстве бонус получает город, получивший уровень раньше.": { ua: "Найкращі міста за рівнем отримують дотації. Не нараховується за 1 рівень міста. При рівності бонус отримує місто, яке отримало рівень раніше.", en: "Top cities by level receive subsidies. Not granted for city level 1. In case of a tie, the city that reached the level earlier gets the bonus." },
+    "Город, имеющий статус столицы получает дотации. Расположение столицы определяет президент": { ua: "Місто, що має статус столиці, отримує дотації. Розташування столиці визначає президент", en: "The city with capital status receives subsidies. The capital's location is determined by the president" },
+    "Города, в которых более 99% занятость населения получают дотации": { ua: "Міста, в яких понад 99% зайнятість населення, отримують дотації", en: "Cities with over 99% population employment receive subsidies" },
+    "Города, в которых есть более 10% свободных торговых площадей получают дотации": { ua: "Міста, в яких є понад 10% вільних торгових площ, отримують дотації", en: "Cities with more than 10% vacant retail space receive subsidies" },
+    "Города имеющие самые низкие цены получают дотации": { ua: "Міста, що мають найнижчі ціни, отримують дотації", en: "Cities with the lowest prices receive subsidies" },
+    "Города, в которых на начало недели не  более 5 дефицитных товара для розницы получают дотации": { ua: "Міста, в яких на початок тижня не більше 5 дефіцитних товарів для роздрібу, отримують дотації", en: "Cities with no more than 5 shortage retail goods at the start of the week receive subsidies" },
+    "Зам": { ua: "Заст", en: "Deputy" },
+    "нет мэра": { ua: "немає мера", en: "no mayor" },
+    "нет зама": { ua: "немає заступника", en: "no deputy" },
+    "Уровень богатства": { ua: "Рівень багатства", en: "Wealth level" },
+    "Жители:": { ua: "Жителі:", en: "Citizens:" },
+    "Ср. цена аренды, кв.м./нед": { ua: "Сер. ціна оренди, кв.м/тиж", en: "Avg. rent price, sq.m./wk" },
+    "Дотации на жителей": { ua: "Дотації на жителів", en: "Citizen subsidies" },
+    "Доходы независимых складов": { ua: "Доходи незалежних складів", en: "Independent warehouse revenues" },
+    "Дотации резервного фонда": { ua: "Дотації резервного фонду", en: "Reserve fund subsidies" },
+    "Общее кол-во работников:": { ua: "Загальна к-сть працівників:", en: "Total workforce:" },
+    "Продажи квартир:": { ua: "Продажі квартир:", en: "Apartment sales:" },
+    "Конкур.": { ua: "Конкур.", en: "Comp." },
+    "Уровень цен": { ua: "Рівень цін", en: "Price level" },
+    "Товар": { ua: "Товар", en: "Product" },
+    "Cумма продаж": { ua: "Сума продажів", en: "Sales revenue" },
+    "Объем продаж": { ua: "Обсяг продажів", en: "Sales volume" },
+    "Отделы": { ua: "Відділи", en: "Departments" },
+    "Графика": { ua: "Графіки", en: "Charts" },
+    "Независимые компании": { ua: "Незалежні компанії", en: "Independent companies" },
+    "Лучшие компании": { ua: "Кращі компанії", en: "Top companies" },
+    "Лучшие корпорации": { ua: "Кращі корпорації", en: "Top corporations" },
+    "Отдел": { ua: "Відділ", en: "Department" },
+    "Низкая конкуренция": { ua: "Низька конкуренція", en: "Low competition" },
+    "Средняя конкуренция": { ua: "Середня конкуренція", en: "Medium competition" },
+    "Высокая конкуренция": { ua: "Висока конкуренція", en: "High competition" },
+    "Место по дотациям": { ua: "Місце за дотаціями", en: "Subsidy rank" },
+    "Кач-во": { ua: "Якість", en: "Quality" },
+    "Цена квартиры": { ua: "Ціна квартири", en: "Apartment price" },
+    "Экспорт": { ua: "Експорт", en: "Export" },
+    "Импорт": { ua: "Імпорт", en: "Import" },
+    "оптовая корзина": { ua: "оптовий кошик", en: "wholesale basket" },
+    "Продажа предприятия": { ua: "Продаж підприємства", en: "Sale of the enterprise" },
+    "Цена продажи:": { ua: "Ціна продажу:", en: "Selling price:" },
+    "Договорная цена": { ua: "Договірна ціна", en: "Negotiated price" },
+    "Валюта цены:": { ua: "Валюта ціни:", en: "Price currency:" },
+    "Сумма комиссии": { ua: "Сума комісії", en: "Commission amount" },
+    "Повысить Характеристики": { ua: "Підвищити Характеристики", en: "Upgrade Stats" },
+    "Ликвидировать предприятие": { ua: "Ліквідувати підприємство", en: "Liquidate the enterprise" },
+    "Игровых очков:": { ua: "Ігрових очок:", en: "Game points:" },
+    "Корпоративная настройка поставщиков": { ua: "Корпоративне налаштування постачальників", en: "Corporate supplier configuration" },
+    "Эффективность": { ua: "Ефективність", en: "Efficiency" },"Себест.": { ua: "Собівартість", en: "Cost price" },
+    "нет менеджера": { ua: "немає менеджера", en: "no manager" },"Начальник": { ua: "Начальник", en: "Manager" },
+    "Выбрать продукцию": { ua: "Обрати продукцію", en: "Select products" },
+    "Купить оборудование": { ua: "Купити обладнання", en: "Buy equipment" },
+    "Ремонтировать оборудование": { ua: "Ремонтувати обладнання", en: "Repair equipment" },
+    "Переместить оборудование внутри предприятия": { ua: "Перемістити обладнання всередині підприємства", en: "Move equipment inside the enterprise" },
+    "Отправить оборудование с предприятия": { ua: "Відправити обладнання з підприємства", en: "Ship equipment from the enterprise" },
+    "Списать оборудование": { ua: "Списати обладнання", en: "Write off equipment" },
+    "Вступительный взнос:": { ua: "Вступний внесок:", en: "Entry fee:" },
+    "Взнос в % от прибыли:": { ua: "Внесок у % від прибутку:", en: "Fee as % of profit:" },
+    "Взнос в % от активов:": { ua: "Внесок у % від активів:", en: "Fee as % of assets:" },
+    "Городов влияния:": { ua: "Міст впливу:", en: "Cities of influence:" },
+    "Участников:": { ua: "Учасників:", en: "Members:" },
+    "Макс. кол-во участников": { ua: "Макс. к-сть учасників", en: "Max members" },
+    "Уровень отдела штаб-квартиры корпорации": { ua: "Рівень відділу штаб-квартири корпорації", en: "Corporation headquarters department level" },
+    "Изменить данные": { ua: "Змінити дані", en: "Edit details" },
+    "Логотип": { ua: "Логотип", en: "Logo" },
+    "Описание:": { ua: "Опис:", en: "Description:" },
+    "После изменения размеров еженедельных взносов their взымание начнется только через 2 виртуальные недели": { ua: "Після зміни розмірів щотижневих внесків їх стягнення розпочнеться лише через 2 віртуальні тижні", en: "After changing the weekly contribution amounts, their collection will only start in 2 virtual weeks" },
+    "Загрузка логотипа занимает некоторое время. Если загрузка не проходит, попробуйте чуть больше подождать.": { ua: "Завантаження логотипа займає деякий час. Якщо завантаження не проходить, спробуйте трохи зачекати.", en: "Uploading the logo takes some time. If the upload does not go through, please try waiting a bit longer." },
+    "Редактирование корпорации": { ua: "Редагування корпорації", en: "Edit corporation" },
+    "Фонд корпорации:": { ua: "Фонд корпорації:", en: "Corporation fund:" },
+    "ИО корпорации:": { ua: "ІО корпорації:", en: "Corporation game points:" },
+    "Квалификация корпорации": { ua: "Кваліфікація корпорації", en: "Corporation qualification" },
+    "Покинуть корпорацию": { ua: "Покинути корпорацію", en: "Leave the corporation" },
+    "Ликвидировать корпорацию": { ua: "Ліквідувати корпорацію", en: "Liquidate the corporation" },
+    "Последний заход": { ua: "Останній візит", en: "Last login" },
+    "Нет ни одной темы": { ua: "Немає жодної теми", en: "No topics found" },
+    "Добавить тему": { ua: "Додати тему", en: "Add topic" },
+    "Мировое влияние": { ua: "Світовий вплив", en: "Global influence" },
+    "По городам": { ua: "За містами", en: "By cities" },
+    "Общее число рабочих": { ua: "Загальна кількість робітників", en: "Total workforce" },
+    "Объявить выборы": { ua: "Оголосити вибори", en: "Call elections" },
+    "товарооборот": { ua: "товарообіг", en: "turnover" },
+    "специалисты": { ua: "фахівці", en: "specialists" },
+    "выписка по счету": { ua: "виписка за рахунком", en: "account statement" },
+    "технологии": { ua: "технології", en: "technologies" },
+    "география": { ua: "географія", en: "geography" },
+    "движение очков": { ua: "рух очок", en: "points movement" },
+    "взносы недели": { ua: "внески тижня", en: "weekly contributions" },
+    "прогресс игроков": { ua: "прогрес гравців", en: "player progress" },
+    "Требуется для управления складами": { ua: "Потрібно для управління складами", en: "Required for warehouse management" },
+    "Требуется для управления магазинами": { ua: "Потрібно для управління магазинами", en: "Required for retail store management" },
+    "Требуется для управления продуктовыми магазинами": { ua: "Потрібно для управління продуктовими магазинами", en: "Required for grocery store management" },
+    "Требуется для управления магазинами промтоваров": { ua: "Потрібно для управління магазинами промтоварів", en: "Required for hardware store management" },
+    "Требуется для управления магазинами электроники": { ua: "Потрібно для управління магазинами електроніки", en: "Required for electronics store management" },
+    "Требуется для управления магазинами автотоваров": { ua: "Потрібно для управління магазинами автотоварів", en: "Required for auto parts store management" },
+    "Требуется для управления строительными магазинами": { ua: "Потрібно для управління будівельними магазинами", en: "Required for home improvement store management" },
+    "Требуется для управления магазинами одежды": { ua: "Потрібно для управління магазинами одягу", en: "Required for clothing store management" },
+    "Требуется для управления магазинами предметов роскоши": { ua: "Потрібно для управління магазинами предметів розкоші", en: "Required for luxury goods store management" },
+    "Требуется для управления аптеками": { ua: "Потрібно для управління аптеками", en: "Required for pharmacy management" },
+    "Требуется для управления спортивными магазинами": { ua: "Потрібно для управління спортивними магазинами", en: "Required for sporting goods store management" },
+    "Требуется для управления детскими магазинами": { ua: "Потрібно для управління дитячими магазинами", en: "Required for toy and baby store management" },
+    "Требуется для управления производственными предприятиями": { ua: "Потрібно для управління виробничими підприємствами", en: "Required for manufacturing plant management" },
+    "Требуется для управления заводами стройматериалов и деревообработки": { ua: "Потрібно для управління заводами будматеріалів та деревообробки", en: "Required for building materials and woodworking plant management" },
+    "Требуется для управления предприятиями, производящими продукты питания и напитки": { ua: "Потрібно для управління підприємствами, що виробляють продукти харчування та напої", en: "Required for food and beverage plant management" },
+    "Требуется для управления предприятиями легкой промышленности": { ua: "Потрібно для управління підприємствами легкої промисловості", en: "Required for light industry enterprise management" },
+    "Требуется для управления машиностроительными предприятиями": { ua: "Потрібно для управління машинобудівними підприємствами", en: "Required for machinery manufacturing plant management" },
+    "Требуется для управления металлургическими заводами": { ua: "Потрібно для управління металургійними заводами", en: "Required for metallurgical plant management" },
+    "Требуется для управления заводами электроники": { ua: "Потрібно для управління заводами електроніки", en: "Required for electronics plant management" },
+    "Требуется для управления химическими заводами": { ua: "Потрібно для управління хімічними заводами", en: "Required for chemical plant management" },
+    "Требуется для управления фармацевтическими заводами": { ua: "Потрібно для управління фармацевтичними заводами", en: "Required for pharmaceutical plant management" },
+    "Требуется для управления заводами по производство спортивных товаров": { ua: "Потрібно для управління заводами з виробництва спортивних товарів", en: "Required for sporting goods manufacturing plant management" },
+    "Требуется для управления сельскохозяйственными предприятиями": { ua: "Потрібно для управління сільськогосподарськими підприємствами", en: "Required for agricultural enterprise management" },
+    "Требуется для управления земледельческими фермами и садами": { ua: "Потрібно для управління землеробськими фермами та садами", en: "Required for crop farms and orchards management" },
+    "Требуется для управления животноводческими фермами": { ua: "Потрібно для управління тваринницькими фермами", en: "Required for livestock farm management" },
+    "Требуется для управления тепличным хозяйством": { ua: "Потрібно для управління тепличним господарством", en: "Required for greenhouse complex management" },
+    "Требуется для управления строительными предприятиями": { ua: "Потрібно для управління будівельними підприємствами", en: "Required for construction company management" },
+    "Требуется для управления сервисными предприятиями": { ua: "Потрібно для управління сервісними підприємствами", en: "Required for service business management" },
+    "Требуется для управления салонами красоты": { ua: "Потрібно для управління салонами краси", en: "Required for beauty salon management" },
+    "Требуется для управления отелями": { ua: "Потрібно для управління готелями", en: "Required for hotel management" },
+    "Требуется для управления автосервисами": { ua: "Потрібно для управління автосервісами", en: "Required for auto repair shop management" },
+    "Требуется для управления ресторанами": { ua: "Потрібно для управління ресторанами", en: "Required for restaurant management" },
+
+
+
+
+
+
+
+
     // ОБЩИЕ ЭЛЕМЕНТЫ
     "Всего": { ua: "Усього", en: "Total" },
     "Выбрать": { ua: "Вибрати", en: "Select" },
@@ -1369,9 +1776,9 @@
     "Цветы (селекция)": { ua: "Квіти (селекція)", en: "Flowers( breeding)" },
     "Яблоки (селекция)": { ua: "Яблука (селекція)", en: "Apple( breeding)" },
     // КАЛЬКУЛЯТОР И ТЕХНОЛОГИИ
-    "Вартість модернизации:": { ua: "Вартість модернізації:", en: "Modernization cost:" },
-    "Вартість повышения уровня:": { ua: "Вартість підвищення рівня:", en: "Level increase cost:" },
-    "Вартість создания": { ua: "Вартість створення", en: "Creation cost" },
+    "Стоимость модернизации:": { ua: "Вартість модернізації:", en: "Modernization cost:" },
+    "Стоимость повышения уровня:": { ua: "Вартість підвищення рівня:", en: "Level increase cost:" },
+    "Стоимость создания": { ua: "Вартість створення", en: "Creation cost" },
     "Доступные города:": { ua: "Доступні міста:", en: "Available city:" },
     "Качество оборудования:": { ua: "Якість обладнання:", en: "Quality equipment:" },
     "Квалификация персонала:": { ua: "Кваліфікація персоналу:", en: "Qualification staff:" },
@@ -1463,7 +1870,7 @@
     "Уровни персонажа": { ua: "Рівні персонажа", en: "Level character" },
     "Финансы компании": { ua: "Фінанси компанії", en: "Finance company" },
     "Характеристики": { ua: "Характеристики", en: "Characteristic" },
-    "Штаб-квартира": { ua: "Штаб-квартира", en: "Headquarters - apartment" },
+    "Штаб-квартира": { ua: "Штаб-квартира", en: "Headquarters" },
     // КОРПОРАЦИИ И ПРЕДПРИЯТИЯ
     "Corporate квесты": { ua: "Корпоративні квести", en: "Corporate quest" },
     "Corporate тендеры": { ua: "Корпоративні тендери", en: "Corporate tenders" },
@@ -1642,7 +2049,8 @@
 
   function isProtectedElement(element) {
     return !!(element && element.nodeType === Node.ELEMENT_NODE &&
-      element.closest('[data-bm-language-switcher="1"]'));
+      (element.id === 'bm-language-switcher-host' ||
+       element.closest?.('#bm-language-switcher-host')));
   }
 
   function isSkippedElement(element) {
@@ -1733,6 +2141,11 @@
     translateElement(doc.body);
   }
 
+  function revealPage() {
+    document.documentElement?.removeAttribute(EARLY_HIDE_ATTRIBUTE);
+    document.getElementById(EARLY_HIDE_STYLE_ID)?.remove();
+  }
+
   function attachFrame(frame) {
     if (!frame || frame.nodeType !== Node.ELEMENT_NODE) return;
     const processFrame = () => {
@@ -1785,8 +2198,10 @@
   }
 
   function updateSwitcherUI() {
-    const switcher = document.querySelector('[data-bm-language-switcher="1"]');
+    const host = document.getElementById('bm-language-switcher-host');
+    const switcher = host?.shadowRoot?.querySelector('.switcher');
     if (!switcher) return;
+
     switcher.querySelectorAll('button[data-lang]').forEach((button) => {
       const active = button.dataset.lang === currentLanguage;
       button.classList.toggle('active', active);
@@ -1804,71 +2219,125 @@
   }
 
   function createLanguageSwitcher() {
-    if (!document.body || document.querySelector('[data-bm-language-switcher="1"]')) return;
+    if (!document.documentElement) return;
+    if (document.getElementById('bm-language-switcher-host')) return;
+
+    const host = document.createElement('div');
+    host.id = 'bm-language-switcher-host';
+    host.setAttribute('aria-label', 'Language switcher');
+
+    // Сам host фиксирован относительно viewport и не зависит от layout страницы.
+    host.style.cssText = [
+      'position:fixed',
+      'top:12px',
+      'right:12px',
+      'left:auto',
+      'bottom:auto',
+      'width:auto',
+      'height:auto',
+      'margin:0',
+      'padding:0',
+      'border:0',
+      'background:transparent',
+      'box-shadow:none',
+      'z-index:2147483647',
+      'display:block',
+      'visibility:visible',
+      'opacity:1',
+      'pointer-events:none',
+      'contain:layout style paint',
+      'isolation:isolate'
+    ].join(';');
+
+    const shadow = host.attachShadow({ mode: 'open' });
 
     const style = document.createElement('style');
     style.textContent = `
-      [data-bm-language-switcher="1"] {
-        position: fixed;
-        top: 12px;
-        right: 12px;
-        z-index: 2147483647;
+      :host {
+        all: initial;
+        font-family: Arial, sans-serif;
+      }
+
+      .switcher {
+        position: relative;
         display: flex;
+        align-items: center;
         gap: 4px;
         padding: 4px;
-        background: rgba(255,255,255,.96);
+        background: rgba(255,255,255,.97);
         border: 1px solid rgba(30,40,60,.14);
         border-radius: 10px;
         box-shadow: 0 4px 18px rgba(0,0,0,.14);
-        font-family: Arial, sans-serif;
         user-select: none;
+        white-space: nowrap;
+        pointer-events: auto;
       }
-      [data-bm-language-switcher="1"] button {
+
+      button {
+        all: unset;
+        box-sizing: border-box;
         min-width: 42px;
         height: 32px;
         padding: 0 8px;
-        border: 0;
         border-radius: 7px;
         background: transparent;
         color: #4a5568;
         font: 700 12px/32px Arial, sans-serif;
+        text-align: center;
         cursor: pointer;
+        pointer-events: auto;
       }
-      [data-bm-language-switcher="1"] button:hover { background: #edf2f7; }
-      [data-bm-language-switcher="1"] button.active {
+
+      button:hover {
+        background: #edf2f7;
+      }
+
+      button.active {
         background: #2563eb;
         color: #fff;
       }
+
+      button:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: 1px;
+      }
     `;
-    document.head?.appendChild(style);
 
     const switcher = document.createElement('div');
-    switcher.dataset.bmLanguageSwitcher = '1';
-    switcher.setAttribute('data-bm-language-switcher', '1');
+    switcher.className = 'switcher';
     switcher.setAttribute('role', 'group');
     switcher.setAttribute('aria-label', 'Language');
 
     const labels = { ru: 'RU', ua: 'UA', en: 'EN' };
     const titles = { ru: 'Русский', ua: 'Українська', en: 'English' };
+
     for (const language of ['ru', 'ua', 'en']) {
       const button = document.createElement('button');
       button.type = 'button';
       button.dataset.lang = language;
       button.textContent = labels[language];
       button.title = titles[language];
+      button.setAttribute('aria-pressed', 'false');
       button.addEventListener('click', () => setLanguage(language));
       switcher.appendChild(button);
     }
 
-    document.body.appendChild(switcher);
+    shadow.append(style, switcher);
+    document.documentElement.appendChild(host);
     updateSwitcherUI();
   }
 
+
   function startTranslator() {
     if (!document.body) return;
+
     createLanguageSwitcher();
+
+    // Первый проход переводчика выполняется до показа страницы.
     setLanguage(currentLanguage);
     processDocument(document);
+
+    revealPage();
   }
 
   if (document.readyState === 'loading') {
