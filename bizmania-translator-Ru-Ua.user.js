@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Бизнесмания — RU-UA-EN переводчик
 // @namespace    https://github.com/AES-PY/AES-tampermonkey-scripts
-// @version      4.0.0
+// @version      4.0.1
 // @author       AES https://bizmania.ru/company?id=8981
 // @description  Переключаемый интерфейс Бизнесмании: русский, украинский, английский
 // @match        *://*.bizmania.ru/*
@@ -677,10 +677,26 @@
         "({n} дн. назад)": {uk: "({n} дн. тому)",en: "({n} days ago)"},
         "{n} дн.": {uk: "{n} дн.",en: "{n} d."},
         "Жилой дом #{n}": {uk: "Житловий будинок #{n}",en: "Residential building #{n}"},
+        "Супермаркет #{n}": {uk: "Супермаркет #{n}",en: "Supermarket #{n}"},
+        "Минимаркет #{n}": {uk: "Мінімаркет #{n}",en: "Minimarket #{n}"},
         "Строится / проект": { uk: "Будується / проект", en: "Under construction / Project" },
         "Здание строится предприятием": { uk: "Будівля будується підприємством", en: "The building is being constructed by the enterprise." },
         "Готовность:": { uk: "Готовність:", en: "Completion rate" },
         "счета": { uk: "рахунки", en: "bills" },
+        "Предприятия, выставленные на продажу в этом городе": { uk: "Підприємства, виставлені на продаж у цьому місті", en: "Businesses for sale in this city" },
+        "Итого, объем закупок в неделю:": { uk: "Разом, обсяг закупівель на тиждень:", en: "Total weekly purchase volume:" },
+        "название": { uk: "назва", en: "name" },
+        "на складе": { uk: "на складі", en: "in stock" },
+        "качество": { uk: "якість", en: "quality" },
+        "Дефицитные товары в этом доме": { uk: "Дефіцитні товари у цьому будинку", en: "Hard-to-find goods in this building" },
+        "Валовая прибыль:": { uk: "Валовий прибуток:", en: "Gross profit:" },
+        "Местонахождение:": { uk: "Місцезнаходження:", en: "Location:" },
+        "Цена аренды:": { uk: "Ціна оренди:", en: "Rental price:" },
+        "Арендуемая площадь:": { uk: "Орендована площа:", en: "Leased area:" },
+        "Стоимость аренды:": { uk: "Вартість оренди:", en: "Rental cost:" },
+        "Расширить отдел нельзя,т.к. нет свободной площади": { uk: "Розширити відділ не можна,т.к. немає вільної площі", en: "The department cannot be expanded because there is no available space." },
+
+
 
 
 
