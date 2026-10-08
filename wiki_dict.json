@@ -1,0 +1,20 @@
+{
+  "en": [
+    {
+      "pattern": "По умолчанию в игре можно выбрать — продавать товар всем или только своей компании\\/корпорации\\.",
+      "replace": "By default in the game you can choose whether to sell goods to everyone or only to your own company/corporation."
+    },
+    {
+      "pattern": "(<img.*?>) Для всех",
+      "replace": "$1 For everyone"
+    },
+    {
+      "pattern": "(<img.*?>) Для себя",
+      "replace": "$1 For self"
+    },
+    {
+      "pattern": "При игре с (<a[\\s\\S]*?>)Премиум-пакет(<\\/a>)ом появится дополнительная кнопка",
+      "replace": "When playing with the $1Premium Package$2, an additional button will appear"
+    }
+  ]
+}
